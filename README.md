@@ -34,3 +34,6 @@ if(strchr(recv_buf, '{')!=NULL)
 
 2021-02-03
 http_send_mes(),DNS lookup failed err,增加return
+
+2021-12-09
+调整墙壁开关控制模式为高角联控模式
