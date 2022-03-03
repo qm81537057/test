@@ -37,3 +37,10 @@ http_send_mes(),DNS lookup failed err,增加return
 
 2021-12-09
 调整墙壁开关控制模式为高角联控模式
+
+2022-03-03
+本地计算高角联控
+{"Command":"SetupProduct","Password":"CloudForce","ProductID":"69bcc8f08b4b407789f4868205ac819e","SeriesNumber":"DMO0005ILS1","Host":"mqtt.ubibot.cn","apn":"CMNET","user":"","pwd":""}
+
+账号 dalianruban
+密码 dalianurban12345

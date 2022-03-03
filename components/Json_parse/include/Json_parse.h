@@ -26,7 +26,7 @@ esp_err_t creat_object(void);
 #define PROTECT_ON 0X01  //��ǰ�з��ٵ�ƽ̨����״̬
 #define PROTECT_OFF 0X00 //��ǰ�޷��ٵ�ƽ̨����״̬
 
-#define MAX_AUTO_CTL_TIME (36* 60)     //ƽ̨php�����͸߽�ֵ���б��ؼ���ʱ��5min
+#define MAX_AUTO_CTL_TIME (1* 60)     //ƽ̨php�����͸߽�ֵ���б��ؼ���ʱ��5min
 #define MAX_WALLKEY_TIME (8 * 60 * 60) //8h ǽ�ڿ��ؿ��ƻ��Զ�����
 
 

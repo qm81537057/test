@@ -14,7 +14,7 @@
 
 //#define GJ5620              //big motor
 //#define GJ5606K             //
-#define GJ5606K_exb             //zhan jia 
+#define GJ5606K_exb           //zhan jia 
 
 
 #ifdef GJ5620
@@ -164,8 +164,8 @@
 #endif
 
 #ifdef GJ5606K_exb
-#define ALLDOWNTIME         25*1000
-#define ALLUPTIME           25*1000
+#define ALLDOWNTIME         5*1000
+#define ALLUPTIME           5*1000
 
 #define ANGLE_N0TO0         70
 #define ANGLE_0TO10         139
@@ -241,7 +241,7 @@
 #define MOTORSTATUS_RUN      0X01
 #define MOTORSTATUS_STOP     0X02
 
-#define KEYCTLANGLETIME     1000
+#define KEYCTLANGLETIME      1000
 
 struct Motor_Value_Struct
 {
@@ -297,12 +297,11 @@ static void Motor_Height_sub1(void)//高度-1（范围0-100）
 {
     Motor_Status=MOTORSTATUS_RUN;
     Motor_Up();
-
-    esp_timer_start_once(timer_once_handle, (HEIGHT_100TO0/100) * 1000); //启动单次定时器
+    esp_timer_start_once(timer_once_handle, (HEIGHT_100TO0/100) * 1000); //HEIGHT_100TO0定义为全程运行时间，除以100分为100份，每一份运行一次
     while(Motor_Status==MOTORSTATUS_RUN){vTaskDelay(10 / portTICK_RATE_MS);}
     Motor_Stop();       
     Motor_Value.height=Motor_Value.height-1;
-    printf("height=%d\n",Motor_Value.height);
+    printf("sub1_height=%d\n",Motor_Value.height);
 }
 
 static void Motor_Height_100to90(void)
@@ -418,7 +417,7 @@ static void Motor_Height_10to0(void)
     printf("height=%d\n",Motor_Value.height);
 }
 
-static void Motor_Height_add1(void)
+static void Motor_Height_add1(void)  //HEIGHT_0TO100定义为全程运行时间，除以100分为100份，每一份运行一次
 {
     Motor_Status=MOTORSTATUS_RUN;
     Motor_Down();
@@ -426,7 +425,7 @@ static void Motor_Height_add1(void)
     while(Motor_Status==MOTORSTATUS_RUN){vTaskDelay(10 / portTICK_RATE_MS);}
     Motor_Stop();       
     Motor_Value.height=Motor_Value.height+1;
-    printf("height=%d\n",Motor_Value.height);
+    printf("add1_height=%d\n",Motor_Value.height);
 }
 
 static void Motor_Height_0to10(void)
@@ -945,7 +944,7 @@ int Motor_SetAllUp(void)
 {
     if(Motor_Status!=MOTORSTATUS_RUN)
     {
-        printf("set up start,height=%d,angle=%d\n",Motor_Value.height,Motor_Value.angle);
+        printf("set up start,now height=%d,angle=%d\n",Motor_Value.height,Motor_Value.angle);
         Motor_Value.height=0;
         Motor_Value.angle=0;
         Motor_Status=MOTORSTATUS_RUN;
@@ -1502,102 +1501,179 @@ static int Motor_KeyCtl_Height(uint8_t change)
     }
 }
 
-
-
-int Motor_AutoCtl(int8_t auto_height,int8_t auto_angle)//自动控制函数，给高角值
+int Motor_AutoCtl(int8_t auto_height, int8_t auto_angle)//自动控制函数，给目标高角值
 {
-    if((auto_height==0)&&(auto_angle==0))//目标为0，0  则判断当前状态不是0，x的情况情况下，执行全收指令
+    if (!((auto_angle == 0) || (auto_angle == 30) || (auto_angle == 50) || (auto_angle == 80)))
     {
-        
-        if(Motor_Value.height!=0)
-        {
-            return Motor_SetAllUp();
-        }
-        else
-        {
-            
-            return MOTORERR;
-        }
-    }
-    else if((auto_height==100)&&(Motor_Value.height!=100))//目标为100，x  当前高度不是100，执行全放
-    {
-        Motor_SetAllDown();
-    }
-    else if((auto_height==100)&&(auto_angle==80)&&(Motor_Value.angle<70))//目标为100，80 ，当前角度<70 执行全放
-    {
-        Motor_SetAllDown();
-    }
-    
-    if((auto_height==100)&&(Motor_Value.height==100))//目标为100，x  当前是100，x，则转角到位
-    {       
-        if(Motor_Value.angle==80)//在100，80时给角度值，则直接到位
-        {
-            switch(auto_angle)//目标角度
-            {
-                case 80:
-                    return MOTOROK;
-                    break;
-                case 70:
-                    Motor_Angle_80to70();
-                    break;
-                case 60:
-                    Motor_Angle_80to60();
-                    break;
-                case 50:
-                    Motor_Angle_80to50();
-                    break;
-                case 40:
-                    Motor_Angle_80to40();
-                    break;
-                case 30:
-                    Motor_Angle_80to30();
-                    break;
-                case 20:
-                    Motor_Angle_80to20();
-                    break;
-                case 10:
-                    Motor_Angle_80to10();
-                    break;
-                case 0:
-                    Motor_Angle_80to0();
-                    break;
-                default:
-                    return MOTORERR;
-                    break;
-            }
-            return MOTOROK;
-        }
-        else//在100，非80时给目标角度值
-        {
-            if((auto_angle>=(-10))&&(auto_angle<=80))
-            {
-                while(auto_angle!=Motor_Value.angle)
-                {
-                    if(auto_angle>Motor_Value.angle)
-                    {
-                        Motor_HandCtl_Angle(ADD);
-                        vTaskDelay(50 / portTICK_RATE_MS);
-                    }    
-                    else if(auto_angle<Motor_Value.angle)
-                    {
-                        Motor_HandCtl_Angle(SUB);
-                        vTaskDelay(50 / portTICK_RATE_MS);
-                    }
-                }
-                return MOTOROK;
-            }
-            else
-            {
-                return MOTORERR;
-            }
-        }
-    }
-    else
-    {
+        ESP_LOGI("motor", "auto_angle error");
         return MOTORERR;
     }
+    /*  目标高度 > 当前高度  窗帘下降
+        Anow -> A80
+        Hnow -> Htar
+        A80  -> Atar
+    */
+    if (auto_height > Motor_Value.height)  
+    {
+        while(80 != Motor_Value.angle)
+        {
+            Motor_HandCtl_Angle(ADD);
+            vTaskDelay(50 / portTICK_RATE_MS);
+        }
 
+        while(auto_height != Motor_Value.height)
+        {
+            Motor_Height_add1();
+            vTaskDelay(5 / portTICK_RATE_MS);
+        }
+
+        while(auto_angle != Motor_Value.angle)
+        {
+            Motor_HandCtl_Angle(SUB);
+            vTaskDelay(50 / portTICK_RATE_MS);
+        }
+    }
+    /*  目标高度 < 当前高度  窗帘上升
+        Anow -> A-10
+        Hnow -> Htar
+        A-10 -> Atar
+    */
+    else if (auto_height < Motor_Value.height)  
+    {
+        while(0 != Motor_Value.angle)
+        {
+            Motor_HandCtl_Angle(SUB);
+            vTaskDelay(50 / portTICK_RATE_MS);
+        }
+        Motor_Angle_0toN0();
+
+        while(auto_height != Motor_Value.height)
+        {
+            Motor_Height_sub1();
+            vTaskDelay(5 / portTICK_RATE_MS);
+        }
+
+        while(auto_angle != Motor_Value.angle)
+        {
+            Motor_HandCtl_Angle(ADD);
+            vTaskDelay(50 / portTICK_RATE_MS);
+        }
+    }
+    /*  目标高度 = 当前高度  只执行角度
+        Anow -> Atar
+    */
+    else
+    {
+        while(auto_angle != Motor_Value.angle)
+        {
+            if(auto_angle > Motor_Value.angle)
+            {
+                Motor_HandCtl_Angle(ADD);
+                vTaskDelay(50 / portTICK_RATE_MS);
+            }    
+            else if(auto_angle < Motor_Value.angle)
+            {
+                Motor_HandCtl_Angle(SUB);
+                vTaskDelay(50 / portTICK_RATE_MS);
+            }
+        }
+    }
+    return MOTOROK;
 }
+
+// int Motor_AutoCtl(int8_t auto_height,int8_t auto_angle)//自动控制函数，给高角值
+// {
+//     if((auto_height==0)&&(auto_angle==0))//目标为0，0  则判断当前状态不是0，x的情况情况下，执行全收指令
+//     {
+        
+//         if(Motor_Value.height!=0)
+//         {
+//             return Motor_SetAllUp();
+//         }
+//         else
+//         {
+//             return MOTORERR;
+//         }
+//     }
+//     else if((auto_height==100)&&(Motor_Value.height!=100))//目标为100，x  当前高度不是100，执行全放
+//     {
+//         Motor_SetAllDown();
+//     }
+//     else if((auto_height==100)&&(auto_angle==80)&&(Motor_Value.angle<70))//目标为100，80 ，当前角度<70 执行全放
+//     {
+//         Motor_SetAllDown();
+//     }
+    
+//     if((auto_height==100)&&(Motor_Value.height==100))//目标为100，x  当前是100，x，则转角到位
+//     {       
+//         if(Motor_Value.angle==80)//在100，80时给角度值，则直接到位
+//         {
+//             switch(auto_angle)//目标角度
+//             {
+//                 case 80:
+//                     return MOTOROK;
+//                     break;
+//                 case 70:
+//                     Motor_Angle_80to70();
+//                     break;
+//                 case 60:
+//                     Motor_Angle_80to60();
+//                     break;
+//                 case 50:
+//                     Motor_Angle_80to50();
+//                     break;
+//                 case 40:
+//                     Motor_Angle_80to40();
+//                     break;
+//                 case 30:
+//                     Motor_Angle_80to30();
+//                     break;
+//                 case 20:
+//                     Motor_Angle_80to20();
+//                     break;
+//                 case 10:
+//                     Motor_Angle_80to10();
+//                     break;
+//                 case 0:
+//                     Motor_Angle_80to0();
+//                     break;
+//                 default:
+//                     return MOTORERR;
+//                     break;
+//             }
+//             return MOTOROK;
+//         }
+//         else//在100，非80时给目标角度值
+//         {
+//             if((auto_angle>=(-10))&&(auto_angle<=80))
+//             {
+//                 while(auto_angle!=Motor_Value.angle)
+//                 {
+//                     if(auto_angle>Motor_Value.angle)
+//                     {
+//                         Motor_HandCtl_Angle(ADD);
+//                         vTaskDelay(50 / portTICK_RATE_MS);
+//                     }    
+//                     else if(auto_angle<Motor_Value.angle)
+//                     {
+//                         Motor_HandCtl_Angle(SUB);
+//                         vTaskDelay(50 / portTICK_RATE_MS);
+//                     }
+//                 }
+//                 return MOTOROK;
+//             }
+//             else
+//             {
+//                 return MOTORERR;
+//             }
+//         }
+//     }
+//     else
+//     {
+//         return MOTORERR;
+//     }
+
+// }
 
 
 
@@ -1656,18 +1732,20 @@ int Motor_KeyCtl(uint8_t change)
     {
         if(Motor_Status!=MOTORSTATUS_RUN)
         {
-            if((Motor_Value.angle==0)&&(Motor_Value.height==0))  //当前为0，0状态，则先执行高度+1
+            
+            if((Motor_Value.angle==0)&&(Motor_Value.height==0))   //当前为0，0状态，直接执行转角度0to80后立即直接+高度
             {
+                Motor_Value.angle = 80;
                 return Motor_KeyCtl_Height(ADD);
             }
-            else if(Motor_Value.angle==50)//当角度为50时，执行angle++后角度=80，返回停止
+            else if(Motor_Value.angle==50)                       //当角度为50时，执行angle++后角度=80，返回停止
             {
                 Motor_HandCtl_Angle(ADD);
                 return MOTORERR;
             }
             else
             {
-                if(Motor_Value.angle!=80)  //当前角度在非80状态时，角度++,达到80
+                if(Motor_Value.angle!=80)       //当前角度在非80状态时，角度++,达到80
                 {
                     ret= Motor_HandCtl_Angle(ADD);
                     if(ret==MOTOROK)
@@ -1680,7 +1758,7 @@ int Motor_KeyCtl(uint8_t change)
                         return ret;
                     }
                 }
-                else//当前角度在80状态时，高度++
+                else            //当前角度在80状态时，高度++
                 {
                     return Motor_KeyCtl_Height(ADD);
                 }
@@ -1697,7 +1775,6 @@ int Motor_KeyCtl(uint8_t change)
         if(Motor_Value.angle==-10)  //当前正在上升，停止后角度为-10，则执行-10～10
         {
             Motor_Angle_N0to0();   //正常上升结束后执行一次-10～10
-           
         }
     }
     return MOTORERR;

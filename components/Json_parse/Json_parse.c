@@ -458,7 +458,7 @@ esp_err_t parse_Uart0(char *json_data)
         json_data_parse = cJSON_Parse(json_data);
         if (json_data_parse == NULL) //如果数据包不为JSON则退出
         {
-                printf("uart0 Json Formatting error\n");
+                printf("uart0 Json Formatting error\n"); 
                 cJSON_Delete(json_data_parse);
 
                 return 0;
@@ -926,7 +926,7 @@ void create_http_json(uint8_t post_status, creat_json *pCreat_json)
                         cJSON_AddItemToObject(next, "field4", cJSON_CreateString(wind_Read_c)); //风速
                 }
                 cJSON_AddItemToObject(next, "field5", cJSON_CreateString(mqtt_json_s.mqtt_Rssi)); //WIFI RSSI
-                cJSON_AddItemToObject(next, "field6", cJSON_CreateString(http_json_c.blu_lng));   //
+                cJSON_AddItemToObject(next, "field6", cJSON_CreateString(http_json_c.blu_lng));   
                 cJSON_AddItemToObject(next, "field7", cJSON_CreateString(http_json_c.blu_lat));
         }
 

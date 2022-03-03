@@ -281,37 +281,37 @@ void sd25rtc_init(void)
     temp = temp & 0x0f;
     DSRTC.year = DSRTC.year & 0x0f;
     year = 2000 + temp * 10 + DSRTC.year;
-    printf("rtc year=%d\n", year);
+    //printf("rtc year=%d\n", year);
 
     temp = DSRTC.month >> 4;
     temp = temp & 0x0f;
     DSRTC.month = DSRTC.month & 0x0f;
     month = temp * 10 + DSRTC.month;
-    printf("rtc month=%d\n", month);
+    //printf("rtc month=%d\n", month);
 
     temp = DSRTC.day >> 4;
     temp = temp & 0x0f;
     DSRTC.day = DSRTC.day & 0x0f;
     day = temp * 10 + DSRTC.day;
-    printf("rtc day=%d\n", day);
+    //printf("rtc day=%d\n", day);
 
     temp = DSRTC.hour >> 4;
     temp = temp & 0x0f;
     DSRTC.hour = DSRTC.hour & 0x0f;
     hour = temp * 10 + DSRTC.hour;
-    printf("rtc hour=%d\n", hour);
+    //printf("rtc hour=%d\n", hour);
 
     temp = DSRTC.minute >> 4;
     temp = temp & 0x0f;
     DSRTC.minute = DSRTC.minute & 0x0f;
     min = temp * 10 + DSRTC.minute;
-    printf("rtc min=%d\n", min);
+    //printf("rtc min=%d\n", min);
 
     temp = DSRTC.second >> 4;
     temp = temp & 0x0f;
     DSRTC.second = DSRTC.second & 0x0f;
     sec = temp * 10 + DSRTC.second;
-    printf("rtc sec=%d\n", sec);
+    //printf("rtc sec=%d\n", sec);
 
     Rtc_Set(year, month, day, hour, min, sec);
 }
@@ -335,37 +335,37 @@ void SD25Rtc_Read(int *year, int *month, int *day, int *hour, int *min, int *sec
     temp = temp & 0x0f;
     DSRTC.year = DSRTC.year & 0x0f;
     *year = 2000 + temp * 10 + DSRTC.year;
-    printf("rtc year=%d\n", (int)year);
+    //printf("rtc year=%d\n", (int)year);
 
     temp = DSRTC.month >> 4;
     temp = temp & 0x0f;
     DSRTC.month = DSRTC.month & 0x0f;
     *month = temp * 10 + DSRTC.month;
-    printf("rtc month=%d\n", (int)month);
+    //printf("rtc month=%d\n", (int)month);
 
     temp = DSRTC.day >> 4;
     temp = temp & 0x0f;
     DSRTC.day = DSRTC.day & 0x0f;
     *day = temp * 10 + DSRTC.day;
-    printf("rtc day=%d\n", (int)day);
+    //printf("rtc day=%d\n", (int)day);
 
     temp = DSRTC.hour >> 4;
     temp = temp & 0x0f;
     DSRTC.hour = DSRTC.hour & 0x0f;
     *hour = temp * 10 + DSRTC.hour;
-    printf("rtc hour=%d\n", (int)hour);
+    //printf("rtc hour=%d\n", (int)hour);
 
     temp = DSRTC.minute >> 4;
     temp = temp & 0x0f;
     DSRTC.minute = DSRTC.minute & 0x0f;
     *min = temp * 10 + DSRTC.minute;
-    printf("rtc min=%d\n", (int)min);
+    //printf("rtc min=%d\n", (int)min);
 
     temp = DSRTC.second >> 4;
     temp = temp & 0x0f;
     DSRTC.second = DSRTC.second & 0x0f;
     *sec = temp * 10 + DSRTC.second;
-    printf("rtc sec=%d\n", (int)sec);
+    //printf("rtc sec=%d\n", (int)sec);
 
     // *year = (1900 + p->tm_year);
     // *month = (1 + p->tm_mon);

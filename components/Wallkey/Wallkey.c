@@ -56,7 +56,7 @@ static int8_t Wallkey_Read(uint8_t *Key_Id, int8_t Switch)
         {
             if ((data_u1[3] == Key_Id[0]) && (data_u1[4] == Key_Id[1]) && (data_u1[5] == Key_Id[2]) && (data_u1[6] == Key_Id[3])) //校验KEY ID是否满足
             {
-                ESP_LOGI(TAG, "Key ID Refuse,ID=%02x-%02x-%02x-%02x", data_u1[3], data_u1[4], data_u1[5], data_u1[6]);
+                ESP_LOGI(TAG, "Key ID OK,ID=%02x-%02x-%02x-%02x", data_u1[3], data_u1[4], data_u1[5], data_u1[6]);
                 ESP_LOGI(TAG, "Key value=%02x", data_u1[9]);
                 if (Switch == 0) //左边
                 {

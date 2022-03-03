@@ -11,11 +11,20 @@
 //W叶片宽度
 #define W  95.0
 //𝜀最大入射角
-#define E  39.0
+#define E  46.0
 //北方纬度定义
 #define LAT_NORTH   38
 //南部纬度定义
 #define LAT_SOUTH   15
+
+//窗帘高度
+#define TOTAL_HEIGHT   2200
+//进光量
+#define LIGHT_IN   800
+//窗洞口深度
+#define WINDOW_WIDTH   700
+//窗下墙高度
+#define WINDOW_WALL  800
 
 //北方冬季开始积日
 #define NORTH_WINTER_START      293
@@ -115,8 +124,14 @@ void Localcalculation(int year,int month,int day,int hour,int minute,float lon,f
     float Aa4;//𝛼4零度角修正
     float Aa5;//𝛼5窗框修正
     float Aa6;//𝛼6日出日落修正
-    float G1;//G1高度夜晚修正
-    float G2;//G2高度无直射修正
+//    float G1;//G1高度夜晚修正
+//    float G2;//G2高度无直射修正
+    float G3;//G3高度中间量
+    float G4;//G4计算遮阳高度
+    float G5;//G5朝向负数修正
+    float G6;//G6大数修正
+    float G7;//G7无直射修正
+    float G8=100;//G8圆整
     float Aa;//𝛼标准旋转角度
     int N1;//N1冬季开始积日
     int N2;//N2冬季结束积日
@@ -236,38 +251,38 @@ void Localcalculation(int year,int month,int day,int hour,int minute,float lon,f
     {
         Aa3=0;
     }
-    else if((Aa2>0)&&(Aa2<=10))
-    {
-        Aa3=10;
-    }
-    else if((Aa2>10)&&(Aa2<=20))
-    {
-        Aa3=20;
-    }
-    else if((Aa2>20)&&(Aa2<=30))
+    else if((Aa2>0)&&(Aa2<=30))
     {
         Aa3=30;
     }
-    else if((Aa2>30)&&(Aa2<=40))
-    {
-        Aa3=40;
-    }
-    else if((Aa2>40)&&(Aa2<=50))
+    else if((Aa2>30)&&(Aa2<=50))
     {
         Aa3=50;
     }
-    else if((Aa2>50)&&(Aa2<=60))
-    {
-        Aa3=60;
-    }
-    else if((Aa2>60)&&(Aa2<=70))
-    {
-        Aa3=70;
-    }
-    else if((Aa2>70)&&(Aa2<=80))
+    else if((Aa2>50)&&(Aa2<=80))
     {
         Aa3=80;
     }
+    // else if((Aa2>30)&&(Aa2<=40))
+    // {
+    //     Aa3=40;
+    // }
+    // else if((Aa2>40)&&(Aa2<=50))
+    // {
+    //     Aa3=50;
+    // }
+    // else if((Aa2>50)&&(Aa2<=60))
+    // {
+    //     Aa3=60;
+    // }
+    // else if((Aa2>60)&&(Aa2<=70))
+    // {
+    //     Aa3=70;
+    // }
+    // else if((Aa2>70)&&(Aa2<=80))
+    // {
+    //     Aa3=80;
+    // }
     else if(Aa2>80)
     {
         Aa3=80;
@@ -333,28 +348,59 @@ void Localcalculation(int year,int month,int day,int hour,int minute,float lon,f
     }
     //ESP_LOGI(TAG, "Aa6=%f",Aa6);
 
-    if((Aa6==0)||(Aa6==2)||(Aa6==3))
+    // if((Aa6==0)||(Aa6==2)||(Aa6==3))
+    // {
+    //     G1=0;
+    // }
+    // else
+    // {
+    //     G1=100;
+    // }
+    //ESP_LOGI(TAG, "G1=%f",G1);
+    G3=LIGHT_IN*tan(radians(Ab));
+    if(Ah<0)
     {
-        G1=0;
+        G4=0;
     }
     else
     {
-        G1=100;
+        if((LIGHT_IN*fabs(tan(radians(Ah))/cos(radians(As-orientation)))-WINDOW_WALL)>TOTAL_HEIGHT)
+        {
+             G4=0;
+        }
+        else
+        {
+            G4=TOTAL_HEIGHT-G3+WINDOW_WALL;
+        }
     }
-    //ESP_LOGI(TAG, "G1=%f",G1);
-
-    /*********计算G2***************************************************************/
-    if(Ah>AH)
+    if(G4<0)
     {
+        G5=0;
+    }
+    else
+    {
+        G5=G4;
+    }
+    if(tan(radians(Ab))*(LIGHT_IN+WINDOW_WIDTH)>(TOTAL_HEIGHT+WINDOW_WALL))
+    {
+        G6=0;
+    }
+    else
+    {
+        G6=G5;
+    }
+    /*********无直射修正G7***************************************************************/
+    // if(Ah>AH)
+    // {
         if((orientation>=-90) && (orientation<0))
         {
             if(((As>=orientation+90) && (As<=180)) || ((As>=-180) && (As<=orientation-90)))
             {
-                G2=0;
+                G7=0;
             }
             else
             {
-                G2=G1;
+                G7=G6;
             }
         }
         else
@@ -363,11 +409,11 @@ void Localcalculation(int year,int month,int day,int hour,int minute,float lon,f
             {
                 if((As>=orientation+90) && (As<=orientation+270))
                 {
-                    G2=0;
+                    G7=0;
                 }
                 else
                 {
-                    G2=G1;
+                    G7=G6;
                 }			
             }
             else
@@ -376,11 +422,11 @@ void Localcalculation(int year,int month,int day,int hour,int minute,float lon,f
                 {
                     if(((As>=-180) && (As<=orientation-90)) || ((As>=90+orientation) && (As<=180)))
                     {
-                        G2=0;
+                        G7=0;
                     }
                     else
                     {
-                        G2=G1;
+                        G7=G6;
                     }				
                 }
                 else
@@ -389,26 +435,75 @@ void Localcalculation(int year,int month,int day,int hour,int minute,float lon,f
                     {
                         if((As>=orientation-270) && (As<=orientation-90))
                         {
-                            G2=0;
+                            G7=0;
                         }
                         else
                         {
-                            G2=G1;					
+                            G7=G6;					
                         }
                     }
                     else
                     {
-                        G2=G1;
+                        G7=G6;
                     }
                 }
             }
         }
-    }
-    else
-    {
-        G2=G1;
-    }
+    // }
+    // else
+    // {
+    //     G7=G6;
+    // }
     //ESP_LOGI(TAG, "G2=%f",G2);
+   /************************圆整G8*********************************/
+if(G7==0)
+    {
+        G8=0;
+    }
+    else if((G7>0)&&(G7<=(TOTAL_HEIGHT*0.1)))
+    {
+        G8=10;
+    }
+    else if((G7>(TOTAL_HEIGHT*0.1))&&(G7<=(TOTAL_HEIGHT*0.2)))
+    {
+        G8=20;
+    }
+    else if((G7>(TOTAL_HEIGHT*0.2))&&(G7<=(TOTAL_HEIGHT*0.3)))
+    {
+        G8=30;
+    }
+    else if((G7>(TOTAL_HEIGHT*0.3))&&(G7<=(TOTAL_HEIGHT*0.4)))
+    {
+        G8=40;
+    }
+    else if((G7>(TOTAL_HEIGHT*0.4))&&(G7<=(TOTAL_HEIGHT*0.5)))
+    {
+        G8=50;
+    }
+    else if((G7>(TOTAL_HEIGHT*0.5))&&(G7<=(TOTAL_HEIGHT*0.6)))
+    {
+        G8=60;
+    }
+    else if((G7>(TOTAL_HEIGHT*0.6))&&(G7<=(TOTAL_HEIGHT*0.7)))
+    {
+        G8=70;
+    }
+    else if((G7>(TOTAL_HEIGHT*0.7))&&(G7<=(TOTAL_HEIGHT*0.8)))
+    {
+        G8=80;
+    }
+    else if((G7>(TOTAL_HEIGHT*0.8))&&(G7<=(TOTAL_HEIGHT*0.9)))
+    {
+        G8=90;
+    }
+    else if((G7>(TOTAL_HEIGHT*0.9))&&(G7<=TOTAL_HEIGHT))
+    {
+        G8=100;
+    }
+    else if(G7>TOTAL_HEIGHT)    
+    {
+        G8=100;
+    }      
 
     if((Aa6==1)||(Aa6==2)||(Aa6==3))
     {
@@ -477,7 +572,7 @@ void Localcalculation(int year,int month,int day,int hour,int minute,float lon,f
 
     if(X==2)
     {
-        G=G2;
+        G=G8;
     }
     else
     {

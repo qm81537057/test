@@ -4,12 +4,14 @@
 #include "E2prom.h"
 #include "Bluetooth.h"
 #include "Led.h"
+#include "Motorctl.h"
 
 #define WEB_SERVER "api.ubibot.cn"
 #define WEB_PORT 80
 
 extern const int CONNECTED_BIT;
 extern uint8_t data_read[34];
+
 
 static char *TAG = "HTTP";
 uint32_t HTTP_STATUS = HTTP_KEY_GET;
@@ -112,16 +114,16 @@ void http_get_task(void *pvParameters)
 
     //free(json_data);
 
-    strcpy(mqtt_json_s.mqtt_mode, "1");//¸øÄ£Ê½³õÖµÎª×Ô¶¯Ä£Ê½
-    mqtt_json_s.mqtt_sun_condition=1;//³õÊ¼»¯ÎªÇçÌì
+    strcpy(mqtt_json_s.mqtt_mode, "1");//ï¿½ï¿½Ä£Ê½ï¿½ï¿½ÖµÎªï¿½Ô¶ï¿½Ä£Ê½
+    mqtt_json_s.mqtt_sun_condition=1;//ï¿½ï¿½Ê¼ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
     
     //mqtt_json_s.mqtt_height=0;
     //mqtt_json_s.mqtt_angle=0;
     //http_send_mes(POST_ALLDOWN);     
-    /***´ò¿ª¶¨Ê±Æ÷10s¿ªÆôÒ»´Î***/
+    /***ï¿½ò¿ª¶ï¿½Ê±ï¿½ï¿½10sï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½***/
     esp_timer_create(&http_suspend, &http_suspend_p);
     esp_timer_start_periodic(http_suspend_p, 1000 * 1000 * 10);
-    /***´ò¿ª¶¨Ê±Æ÷¡Á**/
+    /***ï¿½ò¿ª¶ï¿½Ê±ï¿½ï¿½ï¿½ï¿½**/
 
     while (1)
     {
@@ -131,13 +133,15 @@ void http_get_task(void *pvParameters)
         WifiStatus=WIFISTATUS_DISCONNET;
         xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT,
                             false, true, portMAX_DELAY);
-        ESP_LOGI(TAG, "Connected to AP");
+        //ESP_LOGI(TAG, "Connected to AP");
         WifiStatus=WIFISTATUS_CONNET;
-        ESP_LOGI(TAG, "Now Work Status=%d",work_status);
+        int8_t height, angle;
+        Motor_Value_Query(&height, &angle);
+        ESP_LOGI(TAG, "Now Work Status=%d,Height=%d,Angle=%d",work_status, height, angle);
         ESP_LOGI("RAM", "Free Heap:%d,%d", esp_get_free_heap_size(), heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
         
-        six_time_count++;//¶¨Ê±60s
+        six_time_count++;//ï¿½ï¿½Ê±60s
         if (six_time_count >= 6)
         {
             six_time_count = 0;
@@ -154,7 +158,7 @@ void http_get_task(void *pvParameters)
             /* Code to print the resolved IP.
             Note: inet_ntoa is non-reentrant, look at ipaddr_ntoa_r for "real" code */
             addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
-            ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
+            //ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
             //ESP_LOGI("wifi", "1free Heap:%d,%d", esp_get_free_heap_size(), heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
             s = socket(res->ai_family, res->ai_socktype, 0);
@@ -165,9 +169,9 @@ void http_get_task(void *pvParameters)
                 vTaskDelay(1000 / portTICK_PERIOD_MS);
                 continue;
             }
-            ESP_LOGI(TAG, "... allocated socket");
+            //ESP_LOGI(TAG, "... allocated socket");
 
-            //Á¬½Ó
+            //ï¿½ï¿½ï¿½ï¿½
             int http_con_ret;
             http_con_ret=connect(s, res->ai_addr, res->ai_addrlen);
             if ( http_con_ret != 0)
@@ -184,12 +188,12 @@ void http_get_task(void *pvParameters)
                     goto stop;
                 }
             }
-            ESP_LOGI(TAG, "... connected");
+            //ESP_LOGI(TAG, "... connected");
             freeaddrinfo(res);
 
             
 
-            /**************·¢ËÍÐÄÌø*******************************************************/
+            /**************ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*******************************************************/
             if (write(s, build_heart_url, strlen(build_heart_url)) < 0)
             {
                 ESP_LOGE(TAG, "... socket send failed");
@@ -197,7 +201,7 @@ void http_get_task(void *pvParameters)
                 vTaskDelay(4000 / portTICK_PERIOD_MS);
                 continue;
             }
-            ESP_LOGI(TAG, "... heartbeat send success=\n%s",build_heart_url);
+            //ESP_LOGI(TAG, "... heartbeat send success=\n%s",build_heart_url);
             //ESP_LOGI("wifi", "4free Heap:%d,%d", esp_get_free_heap_size(), heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
             struct timeval receiving_timeout;
@@ -237,7 +241,7 @@ void http_get_task(void *pvParameters)
     }
 }
 
-//¼¤»îÁ÷³Ì
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 int http_activate(void)
 {
     const struct addrinfo hints = {
@@ -272,7 +276,7 @@ int http_activate(void)
         /* Code to print the resolved IP.
         Note: inet_ntoa is non-reentrant, look at ipaddr_ntoa_r for "real" code */
         addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
-        ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
+        //ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
 
         s = socket(res->ai_family, res->ai_socktype, 0);
         if (s < 0)
@@ -282,7 +286,7 @@ int http_activate(void)
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             continue;
         }
-        ESP_LOGI(TAG, "... allocated socket");
+        //ESP_LOGI(TAG, "... allocated socket");
 
         if (connect(s, res->ai_addr, res->ai_addrlen) != 0)
         {
@@ -293,7 +297,7 @@ int http_activate(void)
             continue;
         }
 
-        ESP_LOGI(TAG, "... connected");
+        //ESP_LOGI(TAG, "... connected");
         freeaddrinfo(res);
         if (write(s, build_http, strlen(build_http)) < 0)
         {
@@ -345,10 +349,10 @@ void http_send_mes(uint8_t post_status)
     //pCreat_json1->creat_json_b=malloc(1024);
 
     //ESP_LOGI("wifi", "1free Heap:%d,%d", esp_get_free_heap_size(), heap_caps_get_free_size(MALLOC_CAP_8BIT));  
-    //´´½¨POSTµÄjson¸ñÊ½
+    //ï¿½ï¿½ï¿½ï¿½POSTï¿½ï¿½jsonï¿½ï¿½Ê½
     create_http_json(post_status,pCreat_json1);
 
-    if(post_status==POST_NOCOMMAND)//ÎÞcommID
+    if(post_status==POST_NOCOMMAND)//ï¿½ï¿½commID
     {
         sprintf(build_po_url, "%s%s%s%s%s%s%s%s%s%s%s%d%s", http.POST, http.POST_URL1, ApiKey, http.POST_URL_FIRMWARE,FIRMWARE,http.POST_URL_SSID,wifi_data.wifi_ssid,
             http.HTTP_VERSION11, http.HOST, http.USER_AHENT, http.CONTENT_LENGTH, pCreat_json1->creat_json_c, http.ENTER);
@@ -377,7 +381,7 @@ void http_send_mes(uint8_t post_status)
     /* Code to print the resolved IP.
            Note: inet_ntoa is non-reentrant, look at ipaddr_ntoa_r for "real" code */
     addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
-    ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
+    //ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
 
     s = socket(res->ai_family, res->ai_socktype, 0);
     if (s < 0)
@@ -386,9 +390,9 @@ void http_send_mes(uint8_t post_status)
         freeaddrinfo(res);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
-    ESP_LOGI(TAG, "... allocated socket");
+    //ESP_LOGI(TAG, "... allocated socket");
 
-    //Á¬½Ó
+    //ï¿½ï¿½ï¿½ï¿½
     int http_con_ret;
     http_con_ret=connect(s, res->ai_addr, res->ai_addrlen);
     if ( http_con_ret != 0)
@@ -405,11 +409,11 @@ void http_send_mes(uint8_t post_status)
             return;
         }
     }
-    ESP_LOGI(TAG, "... connected");
+    //ESP_LOGI(TAG, "... connected");
     freeaddrinfo(res);
 
     
-    //·¢ËÍ
+    //ï¿½ï¿½ï¿½ï¿½
     if (write(s, build_po_url_json, strlen(build_po_url_json)) < 0)
     {
         ESP_LOGE(TAG, "... socket send failed");
@@ -419,9 +423,9 @@ void http_send_mes(uint8_t post_status)
     ESP_LOGI(TAG, "... http socket send success");
 
 
-    //ÉèÖÃ½ÓÊÕ
+    //ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½
     struct timeval receiving_timeout;
-    if(work_status==WORK_HAND)//ÊÖ¶¯¿ØÖÆÊ±µÄ³¬Ê±Ê±¼äËõ¶Ì£¬±ÜÃâÉÏ´«µÈ´ýrespondÊ±£¬²»ÔËÐÐÖ¸Áî
+    if(work_status==WORK_HAND)//ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Ä³ï¿½Ê±Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Ì£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½È´ï¿½respondÊ±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
     {
         receiving_timeout.tv_sec = 0;
         receiving_timeout.tv_usec = 100;
@@ -441,16 +445,16 @@ void http_send_mes(uint8_t post_status)
     ESP_LOGI(TAG, "... set socket receiving timeout success");
 
     /* Read HTTP response */
-    //½ÓÊÕHTTP·µ»Ø
+    //ï¿½ï¿½ï¿½ï¿½HTTPï¿½ï¿½ï¿½ï¿½
     bzero(recv_buf,sizeof(recv_buf));
     r = read(s, recv_buf, sizeof(recv_buf) - 1);
     printf("r=%d,recv=%s\r\n",r, recv_buf);
     close(s);
 
-    //½âÎö·µ»ØÊý¾Ý
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     if(r>0)
     {
-        if(strchr(recv_buf, '{')!=NULL)
+        if(strchr(recv_buf, '{') != NULL)
         {
             parse_objects_http_respond(strchr(recv_buf, '{'));
         }

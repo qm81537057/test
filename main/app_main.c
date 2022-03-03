@@ -67,7 +67,7 @@ void timer_periodic_cb(void *arg) //1ms中断一次
 
                 mqtt_json_s.mqtt_height = M1;
                 mqtt_json_s.mqtt_angle = M2;
-                printf("Motor_Height=%d,Motor_Angle=%d\n", mqtt_json_s.mqtt_height, mqtt_json_s.mqtt_angle);
+                printf("target Motor_Height=%d,Motor_Angle=%d\n", mqtt_json_s.mqtt_height, mqtt_json_s.mqtt_angle);
                 work_status = WORK_HANDTOAUTO; //自动回复切自动
                 printf("hand to auto by last time1\n");
             }
@@ -101,7 +101,7 @@ void timer_periodic_cb(void *arg) //1ms中断一次
                     //ob_blu_json.T3_h, ob_blu_json.T3_m, ob_blu_json.T4_h, ob_blu_json.T4_m);
                     mqtt_json_s.mqtt_height = M1;
                     mqtt_json_s.mqtt_angle = M2;
-                    printf("Motor_Height=%d,Motor_Angle=%d\n", mqtt_json_s.mqtt_height, mqtt_json_s.mqtt_angle);
+                    printf("target Height=%d,Angle=%d\n", mqtt_json_s.mqtt_height, mqtt_json_s.mqtt_angle);
 
                     work_status = WORK_LOCAL;
                     Led_Status = LED_STA_LOCAL;
@@ -183,8 +183,8 @@ static void Motor_Task(void *arg)
         else if (work_status == WORK_LOCAL)
         {
             printf("Motor task work local\n");
-            work_status = WORK_WAITLOCAL;
-            Motor_AutoCtl((int)mqtt_json_s.mqtt_height, (int)mqtt_json_s.mqtt_angle);
+            work_status = WORK_WAITLOCAL; //正在执行，锁定
+            Motor_AutoCtl((int)mqtt_json_s.mqtt_height, (int)mqtt_json_s.mqtt_angle);  //执行高角控制
         }
 
         if ((WallKeyCtl_Status != WallKeyUpStart) && (WallKeyCtl_Status != WallKeyDownStart)) //避免墙壁开关上升下降有停顿
