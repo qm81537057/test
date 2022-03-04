@@ -142,6 +142,11 @@ static void Motor_Task(void *arg)
                 work_status = WORK_AUTO;
                 Led_Status = LED_STA_LOCAL;
             }
+            else
+            {
+                work_status = WORK_AUTO;
+                Led_Status = LED_STA_LOCAL;
+            }
         }
         else if (work_status == WORK_FIREINIT)
         {

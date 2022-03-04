@@ -94,7 +94,7 @@ typedef struct
     int T3_m;
     int T4_h;
     int T4_m;
-    uint8_t WallKeyId[4];
+    uint8_t WallKeyId[5];
     int8_t Switch;
 } object_bluetooth_json;
 
@@ -111,7 +111,7 @@ struct
     int T3_m;
     int T4_h;
     int T4_m;
-    uint8_t WallKeyId[4];
+    uint8_t WallKeyId[5];
     int8_t Switch;
 } ob_blu_json;
 

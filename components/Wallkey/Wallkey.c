@@ -44,18 +44,53 @@ void Wallkey_Init(void)
     WallKeyCtl_Status = WallKeyWait;
 }
 
-static int8_t Wallkey_Read(uint8_t *Key_Id, int8_t Switch)
+static int8_t Wallkey_Read(uint8_t *Key_Id, int8_t Switch, uint8_t* Key_type)
 {
     uint8_t data_u1[100];
 
     int len1 = uart_read_bytes(UART_NUM_1, data_u1, BUF_SIZE, 20 / portTICK_RATE_MS);
     if (len1 != 0) //读取到按键数据
     {
+        // printf("wall data=\n");
+        // for(int i=0; i<len1; i++)
+        // {
+        //     printf("%02X ",data_u1[i]);
+        // }
+        // printf("\n");
         len1 = 0;
-        if ((data_u1[0] == 0x7e) && (data_u1[8] == 0xef)) //校验数据头和第9个字节固定为0XEF
+
+
+        if ((data_u1[0] == 0x7e) && (data_u1[1] == 0x08) && (data_u1[12] == 0x0d)) //校验数据头 捷昌遥控
+        {
+            *Key_type = 1;//捷昌遥控
+            if ((data_u1[3] == Key_Id[0]) && (data_u1[4] == Key_Id[1]) && (data_u1[5] == Key_Id[2]) && (data_u1[6] == Key_Id[3])) //校验KEY ID是否满足
+            {
+                uint8_t ch_self = Key_Id[4];
+                ESP_LOGI(TAG, "self channel = %02x", ch_self);
+                uint16_t ch_ctl = data_u1[8];
+                ch_ctl = ch_ctl << 8 | data_u1[7];
+                ESP_LOGI(TAG, "ctl channel = %04x", ch_ctl);
+
+                if(((ch_ctl>>(ch_self-1))&0x0001))
+                {
+                    ESP_LOGI(TAG, "key value = %02x", data_u1[10]);
+                    return data_u1[10];
+                }
+                else
+                {
+                    ESP_LOGW(TAG, "not self channel");
+                    return -1;
+                }
+            }
+
+        }
+
+
+        else if ((data_u1[0] == 0x7e) && (data_u1[8] == 0xef)) //校验数据头和第9个字节固定为0XEF 易佰龙遥控
         {
             if ((data_u1[3] == Key_Id[0]) && (data_u1[4] == Key_Id[1]) && (data_u1[5] == Key_Id[2]) && (data_u1[6] == Key_Id[3])) //校验KEY ID是否满足
             {
+                *Key_type = 0;//易佰龙遥控
                 ESP_LOGI(TAG, "Key ID OK,ID=%02x-%02x-%02x-%02x", data_u1[3], data_u1[4], data_u1[5], data_u1[6]);
                 ESP_LOGI(TAG, "Key value=%02x", data_u1[9]);
                 if (Switch == 0) //左边
@@ -115,17 +150,18 @@ void Wallkey_App(uint8_t *Key_Id, int8_t Switch)
 {
 
     int8_t key = 0;
-    key = Wallkey_Read(Key_Id, Switch);
+    uint8_t type = 0;
+    key = Wallkey_Read(Key_Id, Switch, &type);
     if ((key == KEY_DOU_LEFT_UP) || (key == KEY_DOU_RIGHT_UP))
     {
         if ((WallKeyCtl_Status == WallKeyUpStop) || (WallKeyCtl_Status == WallKeyDownStop) || (WallKeyCtl_Status == WallKeyWait))
         {
             WallKeyCtl_Status = WallKeyUpStart;
         }
-        else if (WallKeyCtl_Status == WallKeyUpStart || WallKeyCtl_Status == WallKeyDownStart)
-        {
-            WallKeyCtl_Status = WallKeyUpStop;
-        }
+        // else if (WallKeyCtl_Status == WallKeyUpStart || WallKeyCtl_Status == WallKeyDownStart)
+        // {
+        //     WallKeyCtl_Status = WallKeyUpStop;
+        // }
         printf("KEY_DOU_LEFT_UP\n");
     }
     else if ((key == KEY_DOU_LEFT_DOWN) || (key == KEY_DOU_RIGHT_DOWN))
@@ -134,14 +170,28 @@ void Wallkey_App(uint8_t *Key_Id, int8_t Switch)
         {
             WallKeyCtl_Status = WallKeyDownStart;
         }
-        else if (WallKeyCtl_Status == WallKeyUpStart || WallKeyCtl_Status == WallKeyDownStart)
-        {
-            WallKeyCtl_Status = WallKeyDownStop;
-        }
+        // else if (WallKeyCtl_Status == WallKeyUpStart || WallKeyCtl_Status == WallKeyDownStart)
+        // {
+        //     WallKeyCtl_Status = WallKeyDownStop;
+        // }
         printf("KEY_DOU_LEFT_DOWN\n");
     }
-    else if (key == KEY_SIN_DOU)
+    else if ((key == KEY_SIN_STOP) && (type == 1))   //捷昌遥控
+    {
+        if (WallKeyCtl_Status == WallKeyUpStart || WallKeyCtl_Status == WallKeyDownStart)
+        {
+            WallKeyCtl_Status = WallKeyUpStop;
+        }
+    }
 
+    else if ((key == KEY_SIN_FAV) && (type == 1))   //捷昌遥控
+    {
+        work_status = WORK_AUTO;
+        Led_Status = LED_STA_AUTO;
+        // http_send_mes(POST_NORMAL);
+    }
+
+        else if ((key == KEY_SIN_DOU) && (type == 0))   //易佰龙遥控
     {
         work_status = WORK_AUTO;
         Led_Status = LED_STA_AUTO;

@@ -51,5 +51,5 @@ MAX_AUTO_CTL_TIME 改为了 1 * 60
 
 2022-03-04
 增加串口debug指令
-{"Command":"DebugOn","height":10,"angle":0}
+{"Command":"DebugOn","height":46,"angle":0}
 {"Command":"DebugOff"}

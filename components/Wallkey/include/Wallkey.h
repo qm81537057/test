@@ -36,6 +36,10 @@ WallKey应用函数，给入Key_Id(蓝牙发送过来的)和方向左0右1
 #define KEY_SIN_DOWN 0X02
 //单控同时按
 #define KEY_SIN_DOU 0X03
+//捷昌遥控设置按键
+#define KEY_SIN_FAV 0X09
+//捷昌遥控圆圈停止按键
+#define KEY_SIN_STOP 0X03
 
 //#define WallKeyStop         0x00
 #define WallKeyUpStart 0x01
