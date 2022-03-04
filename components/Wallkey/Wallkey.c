@@ -158,10 +158,10 @@ void Wallkey_App(uint8_t *Key_Id, int8_t Switch)
         {
             WallKeyCtl_Status = WallKeyUpStart;
         }
-        // else if (WallKeyCtl_Status == WallKeyUpStart || WallKeyCtl_Status == WallKeyDownStart)
-        // {
-        //     WallKeyCtl_Status = WallKeyUpStop;
-        // }
+        else if (WallKeyCtl_Status == WallKeyUpStart || WallKeyCtl_Status == WallKeyDownStart)
+        {
+            WallKeyCtl_Status = WallKeyUpStop;
+        }
         printf("KEY_DOU_LEFT_UP\n");
     }
     else if ((key == KEY_DOU_LEFT_DOWN) || (key == KEY_DOU_RIGHT_DOWN))
@@ -170,10 +170,10 @@ void Wallkey_App(uint8_t *Key_Id, int8_t Switch)
         {
             WallKeyCtl_Status = WallKeyDownStart;
         }
-        // else if (WallKeyCtl_Status == WallKeyUpStart || WallKeyCtl_Status == WallKeyDownStart)
-        // {
-        //     WallKeyCtl_Status = WallKeyDownStop;
-        // }
+        else if (WallKeyCtl_Status == WallKeyUpStart || WallKeyCtl_Status == WallKeyDownStart)
+        {
+            WallKeyCtl_Status = WallKeyDownStop;
+        }
         printf("KEY_DOU_LEFT_DOWN\n");
     }
     else if ((key == KEY_SIN_STOP) && (type == 1))   //捷昌遥控
