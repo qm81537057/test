@@ -53,3 +53,5 @@ MAX_AUTO_CTL_TIME 改为了 1 * 60
 增加串口debug指令
 {"Command":"DebugOn","height":46,"angle":0}
 {"Command":"DebugOff"}
+
+增加捷昌遥控，兼容易佰龙和捷昌
