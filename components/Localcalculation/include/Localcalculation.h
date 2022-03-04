@@ -21,5 +21,9 @@ void Localcalculation(int year,int month,int day,int hour,int minute,float lon,f
                       int* Height,int* Angle);
 
 
+extern uint8_t debug_flag;
+extern uint8_t debug_heigh;
+extern uint8_t debug_angle;
+
 #endif
 

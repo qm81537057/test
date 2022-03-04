@@ -44,3 +44,12 @@ http_send_mes(),DNS lookup failed err,增加return
 
 账号 dalianruban
 密码 dalianurban12345
+
+主要修改Motor_AutoCtl函数
+
+MAX_AUTO_CTL_TIME 改为了 1 * 60
+
+2022-03-04
+增加串口debug指令
+{"Command":"DebugOn","height":10,"angle":0}
+{"Command":"DebugOff"}

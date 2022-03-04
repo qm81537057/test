@@ -5,6 +5,10 @@
 
 #include "Localcalculation.h"
 
+uint8_t debug_flag = 0;
+uint8_t debug_heigh = 0;
+uint8_t debug_angle = 0;
+
 #define PI  3.14159
 //H叶片间距
 #define H  80.0
@@ -103,107 +107,101 @@ void Localcalculation(int year,int month,int day,int hour,int minute,float lon,f
                       int T1_h,int T1_m,int T2_h,int T2_m,int T3_h,int T3_m,int T4_h,int T4_m,
                       int* Height,int* Angle)
 {
-    int N;//积日
-    float N0;//N0标准积日
-    float t;//t公转时间
-    float Fsun;//𝜃日角
-    //float Er;//Er日地距离
-    float Ed;//Ed赤纬角
-    float Et;//Et时差
-    float Sd;//Sd地方太阳时
-    float So;//So真太阳时
-    float At;//𝜏时角
-    float Ah;//h高度角
-    float A;//A方位角
-    float As;//As方位角加符号
-    float Ab;//𝛽入射角
-    float Aa0;//𝛼0翻转角
-    float Aa1;//𝛼1日落修正
-    float Aa2;//𝛼2无直射修正
-    float Aa3=0;//𝛼3圆整
-    float Aa4;//𝛼4零度角修正
-    float Aa5;//𝛼5窗框修正
-    float Aa6;//𝛼6日出日落修正
-//    float G1;//G1高度夜晚修正
-//    float G2;//G2高度无直射修正
-    float G3;//G3高度中间量
-    float G4;//G4计算遮阳高度
-    float G5;//G5朝向负数修正
-    float G6;//G6大数修正
-    float G7;//G7无直射修正
-    float G8=100;//G8圆整
-    float Aa;//𝛼标准旋转角度
-    int N1;//N1冬季开始积日
-    int N2;//N2冬季结束积日
-    int X;//人员使用信号
-    int G;//G最终高度
-    int AA;//最终角度
-    N=cal_N(year,month,day);
-    //ESP_LOGI(TAG, "N=%d",N);
-    N0=79.6764+0.2422*(year-1985)-(int)((year-1985)/4);
-    t=N-N0;
-    //ESP_LOGI(TAG, "t=%f",t);
-    Fsun=2*PI*t/365.2422;
-    //Er=1.000423+0.032359*sin(Fsun)+0.000086*sin(2*Fsun)-0.008349*cos(Fsun)+0.000115*cos(2*Fsun);
-    Ed=0.3723+23.2567*sin(Fsun)+0.1149*sin(2*Fsun)-0.1712*sin(3*Fsun)-0.758*cos(Fsun)+0.3656*cos(2*Fsun)+0.0201*cos(3*Fsun);
-    Et=0.0028-1.9857*sin(Fsun)+9.9059*sin(2*Fsun)-7.0924*cos(Fsun)-0.6882*cos(2*Fsun);
-    Sd=hour+(minute-4*(120-lon))/60;
-    So=Sd+Et/60;
-    At=(So-12)*15;
-    Ah=degrees(asin((sin(radians(Ed))*sin(radians(lat))+cos(radians(Ed))*cos(radians(lat))*cos(radians(At)))));
-    //ESP_LOGI(TAG, "Ah=%f",Ah);
-    A=degrees(acos((sin(radians(Ah))*sin(radians(lat))-sin(radians(Ed)))/(cos(radians(Ah))*cos(radians(lat)))));
-    //ESP_LOGI(TAG, "A=%f",A);
-
-    if(Sd<12)
+    if(debug_flag == 1)
     {
-        As=-A;
+        *Height=debug_heigh;
+        *Angle=debug_angle;
     }
     else
     {
-        As=A;
-    }
+        int N;//积日
+        float N0;//N0标准积日
+        float t;//t公转时间
+        float Fsun;//𝜃日角
+        //float Er;//Er日地距离
+        float Ed;//Ed赤纬角
+        float Et;//Et时差
+        float Sd;//Sd地方太阳时
+        float So;//So真太阳时
+        float At;//𝜏时角
+        float Ah;//h高度角
+        float A;//A方位角
+        float As;//As方位角加符号
+        float Ab;//𝛽入射角
+        float Aa0;//𝛼0翻转角
+        float Aa1;//𝛼1日落修正
+        float Aa2;//𝛼2无直射修正
+        float Aa3=0;//𝛼3圆整
+        float Aa4;//𝛼4零度角修正
+        float Aa5;//𝛼5窗框修正
+        float Aa6;//𝛼6日出日落修正
+    //    float G1;//G1高度夜晚修正
+    //    float G2;//G2高度无直射修正
+        float G3;//G3高度中间量
+        float G4;//G4计算遮阳高度
+        float G5;//G5朝向负数修正
+        float G6;//G6大数修正
+        float G7;//G7无直射修正
+        float G8=100;//G8圆整
+        float Aa;//𝛼标准旋转角度
+        int N1;//N1冬季开始积日
+        int N2;//N2冬季结束积日
+        int X;//人员使用信号
+        int G;//G最终高度
+        int AA;//最终角度
+        N=cal_N(year,month,day);
+        //ESP_LOGI(TAG, "N=%d",N);
+        N0=79.6764+0.2422*(year-1985)-(int)((year-1985)/4);
+        t=N-N0;
+        //ESP_LOGI(TAG, "t=%f",t);
+        Fsun=2*PI*t/365.2422;
+        //Er=1.000423+0.032359*sin(Fsun)+0.000086*sin(2*Fsun)-0.008349*cos(Fsun)+0.000115*cos(2*Fsun);
+        Ed=0.3723+23.2567*sin(Fsun)+0.1149*sin(2*Fsun)-0.1712*sin(3*Fsun)-0.758*cos(Fsun)+0.3656*cos(2*Fsun)+0.0201*cos(3*Fsun);
+        Et=0.0028-1.9857*sin(Fsun)+9.9059*sin(2*Fsun)-7.0924*cos(Fsun)-0.6882*cos(2*Fsun);
+        Sd=hour+(minute-4*(120-lon))/60;
+        So=Sd+Et/60;
+        At=(So-12)*15;
+        Ah=degrees(asin((sin(radians(Ed))*sin(radians(lat))+cos(radians(Ed))*cos(radians(lat))*cos(radians(At)))));
+        //ESP_LOGI(TAG, "Ah=%f",Ah);
+        A=degrees(acos((sin(radians(Ah))*sin(radians(lat))-sin(radians(Ed)))/(cos(radians(Ah))*cos(radians(lat)))));
+        //ESP_LOGI(TAG, "A=%f",A);
 
-    if(fabs(As-orientation)==90)
-    {
-        Ab=90;
-    }
-    else
-    {
-       Ab=fabs(degrees(atan(tan(radians(Ah))/cos(radians(As-orientation)))));
-    }
-    //ESP_LOGI(TAG, "Ab=%f",Ab);
-
-    Aa0=(acos((H/(2*W))*sin(2*(Ab/180)*PI)+sqrt((1-((H*H)/(W*W)))*(pow(cos((Ab/180)*PI),2))+(((H/(2*W))*(H/(2*W)))*(sin(2*(Ab/180)*PI)*sin(2*(Ab/180)*PI)))))*180/PI);
-    //ESP_LOGI(TAG, "Aa0=%f",Aa0);
-
-    
-    if(Ah>0)
-    {
-        Aa1=Aa0;
-    }
-    else
-    {
-        Aa1=0;
-    }
-    //ESP_LOGI(TAG, "Aa1=%f",Aa1);
-
-    if((orientation>=-90)&&(orientation<0))
-    {
-        if(((As>=(orientation+90)) && (As<=180)) || ((As<=(orientation-90))&& (As>=-180)))
+        if(Sd<12)
         {
-            Aa2=0;
+            As=-A;
         }
         else
         {
-            Aa2=Aa1;
+            As=A;
         }
-    }
-    else
-    {
-        if((orientation>-180) &&(orientation<-90))
+
+        if(fabs(As-orientation)==90)
         {
-            if((As>=(orientation+90)) && (As<=(orientation+270)))
+            Ab=90;
+        }
+        else
+        {
+        Ab=fabs(degrees(atan(tan(radians(Ah))/cos(radians(As-orientation)))));
+        }
+        //ESP_LOGI(TAG, "Ab=%f",Ab);
+
+        Aa0=(acos((H/(2*W))*sin(2*(Ab/180)*PI)+sqrt((1-((H*H)/(W*W)))*(pow(cos((Ab/180)*PI),2))+(((H/(2*W))*(H/(2*W)))*(sin(2*(Ab/180)*PI)*sin(2*(Ab/180)*PI)))))*180/PI);
+        //ESP_LOGI(TAG, "Aa0=%f",Aa0);
+
+        
+        if(Ah>0)
+        {
+            Aa1=Aa0;
+        }
+        else
+        {
+            Aa1=0;
+        }
+        //ESP_LOGI(TAG, "Aa1=%f",Aa1);
+
+        if((orientation>=-90)&&(orientation<0))
+        {
+            if(((As>=(orientation+90)) && (As<=180)) || ((As<=(orientation-90))&& (As>=-180)))
             {
                 Aa2=0;
             }
@@ -214,397 +212,411 @@ void Localcalculation(int year,int month,int day,int hour,int minute,float lon,f
         }
         else
         {
-            if((orientation<90) &&( orientation>=0))
+            if((orientation>-180) &&(orientation<-90))
             {
-                if(((As>=-180) && (As<(orientation-90))) || ((As>=(90+orientation)) && (As<=180)))
+                if((As>=(orientation+90)) && (As<=(orientation+270)))
                 {
                     Aa2=0;
                 }
                 else
                 {
                     Aa2=Aa1;
-                }			
+                }
             }
             else
             {
-                if((orientation>=90) && (orientation<=180))
+                if((orientation<90) &&( orientation>=0))
                 {
-                    if((As>=(orientation-270)) && (As<=(orientation-90)))
+                    if(((As>=-180) && (As<(orientation-90))) || ((As>=(90+orientation)) && (As<=180)))
                     {
                         Aa2=0;
                     }
                     else
                     {
                         Aa2=Aa1;
-                    }
+                    }			
                 }
                 else
                 {
-                    Aa2=Aa1;
-                }	   
-            }
-        }	
-    }
-    //ESP_LOGI(TAG, "Aa2=%f",Aa2);
-    
-    if(Aa2==0)
-    {
-        Aa3=0;
-    }
-    else if((Aa2>0)&&(Aa2<=30))
-    {
-        Aa3=30;
-    }
-    else if((Aa2>30)&&(Aa2<=50))
-    {
-        Aa3=50;
-    }
-    else if((Aa2>50)&&(Aa2<=80))
-    {
-        Aa3=80;
-    }
-    // else if((Aa2>30)&&(Aa2<=40))
-    // {
-    //     Aa3=40;
-    // }
-    // else if((Aa2>40)&&(Aa2<=50))
-    // {
-    //     Aa3=50;
-    // }
-    // else if((Aa2>50)&&(Aa2<=60))
-    // {
-    //     Aa3=60;
-    // }
-    // else if((Aa2>60)&&(Aa2<=70))
-    // {
-    //     Aa3=70;
-    // }
-    // else if((Aa2>70)&&(Aa2<=80))
-    // {
-    //     Aa3=80;
-    // }
-    else if(Aa2>80)
-    {
-        Aa3=80;
-    }    
-    //ESP_LOGI(TAG, "Aa3=%f",Aa3);
-
-
-    if(Ab>E)
-    {
+                    if((orientation>=90) && (orientation<=180))
+                    {
+                        if((As>=(orientation-270)) && (As<=(orientation-90)))
+                        {
+                            Aa2=0;
+                        }
+                        else
+                        {
+                            Aa2=Aa1;
+                        }
+                    }
+                    else
+                    {
+                        Aa2=Aa1;
+                    }	   
+                }
+            }	
+        }
+        //ESP_LOGI(TAG, "Aa2=%f",Aa2);
+        
         if(Aa2==0)
+        {
+            Aa3=0;
+        }
+        else if((Aa2>0)&&(Aa2<=30))
+        {
+            Aa3=30;
+        }
+        else if((Aa2>30)&&(Aa2<=50))
+        {
+            Aa3=50;
+        }
+        else if((Aa2>50)&&(Aa2<=80))
+        {
+            Aa3=80;
+        }
+        // else if((Aa2>30)&&(Aa2<=40))
+        // {
+        //     Aa3=40;
+        // }
+        // else if((Aa2>40)&&(Aa2<=50))
+        // {
+        //     Aa3=50;
+        // }
+        // else if((Aa2>50)&&(Aa2<=60))
+        // {
+        //     Aa3=60;
+        // }
+        // else if((Aa2>60)&&(Aa2<=70))
+        // {
+        //     Aa3=70;
+        // }
+        // else if((Aa2>70)&&(Aa2<=80))
+        // {
+        //     Aa3=80;
+        // }
+        else if(Aa2>80)
+        {
+            Aa3=80;
+        }    
+        //ESP_LOGI(TAG, "Aa3=%f",Aa3);
+
+
+        if(Ab>E)
+        {
+            if(Aa2==0)
+            {
+                Aa4=Aa3;
+            }
+            else
+            {
+                Aa4=1;
+            }
+        }
+        else
         {
             Aa4=Aa3;
         }
-        else
-        {
-            Aa4=1;
-        }
-    }
-    else
-    {
-        Aa4=Aa3;
-    }
-    //ESP_LOGI(TAG, "Aa4=%f",Aa4);
+        //ESP_LOGI(TAG, "Aa4=%f",Aa4);
 
-    if(fabs(As-orientation-90)<5)
-    {
-        if(Aa4==0)
+        if(fabs(As-orientation-90)<5)
         {
-            Aa5=0;
-        }
-        else
-        {
-            if(Aa4==1)
+            if(Aa4==0)
             {
-                Aa5=Aa4;
+                Aa5=0;
             }
             else
             {
-                Aa5=2;
+                if(Aa4==1)
+                {
+                    Aa5=Aa4;
+                }
+                else
+                {
+                    Aa5=2;
+                }
             }
         }
-    }
-    else
-    {
-        Aa5=Aa4;
-    }
-    //ESP_LOGI(TAG, "Aa5=%f",Aa5);
-
-    if(fabs(Ah)<AH)
-    {
-        if(Aa5==0)
-        {
-            Aa6=0;
-        }
         else
         {
-            Aa6=3;
+            Aa5=Aa4;
         }
-    }
-    else
-    {
-        Aa6=Aa5;
-    }
-    //ESP_LOGI(TAG, "Aa6=%f",Aa6);
+        //ESP_LOGI(TAG, "Aa5=%f",Aa5);
 
-    // if((Aa6==0)||(Aa6==2)||(Aa6==3))
-    // {
-    //     G1=0;
-    // }
-    // else
-    // {
-    //     G1=100;
-    // }
-    //ESP_LOGI(TAG, "G1=%f",G1);
-    G3=LIGHT_IN*tan(radians(Ab));
-    if(Ah<0)
-    {
-        G4=0;
-    }
-    else
-    {
-        if((LIGHT_IN*fabs(tan(radians(Ah))/cos(radians(As-orientation)))-WINDOW_WALL)>TOTAL_HEIGHT)
+        if(fabs(Ah)<AH)
         {
-             G4=0;
-        }
-        else
-        {
-            G4=TOTAL_HEIGHT-G3+WINDOW_WALL;
-        }
-    }
-    if(G4<0)
-    {
-        G5=0;
-    }
-    else
-    {
-        G5=G4;
-    }
-    if(tan(radians(Ab))*(LIGHT_IN+WINDOW_WIDTH)>(TOTAL_HEIGHT+WINDOW_WALL))
-    {
-        G6=0;
-    }
-    else
-    {
-        G6=G5;
-    }
-    /*********无直射修正G7***************************************************************/
-    // if(Ah>AH)
-    // {
-        if((orientation>=-90) && (orientation<0))
-        {
-            if(((As>=orientation+90) && (As<=180)) || ((As>=-180) && (As<=orientation-90)))
+            if(Aa5==0)
             {
-                G7=0;
+                Aa6=0;
             }
             else
             {
-                G7=G6;
+                Aa6=3;
             }
         }
         else
         {
-            if((orientation>-180) && (orientation<-90))
+            Aa6=Aa5;
+        }
+        //ESP_LOGI(TAG, "Aa6=%f",Aa6);
+
+        // if((Aa6==0)||(Aa6==2)||(Aa6==3))
+        // {
+        //     G1=0;
+        // }
+        // else
+        // {
+        //     G1=100;
+        // }
+        //ESP_LOGI(TAG, "G1=%f",G1);
+        G3=LIGHT_IN*tan(radians(Ab));
+        if(Ah<0)
+        {
+            G4=0;
+        }
+        else
+        {
+            if((LIGHT_IN*fabs(tan(radians(Ah))/cos(radians(As-orientation)))-WINDOW_WALL)>TOTAL_HEIGHT)
             {
-                if((As>=orientation+90) && (As<=orientation+270))
+                G4=0;
+            }
+            else
+            {
+                G4=TOTAL_HEIGHT-G3+WINDOW_WALL;
+            }
+        }
+        if(G4<0)
+        {
+            G5=0;
+        }
+        else
+        {
+            G5=G4;
+        }
+        if(tan(radians(Ab))*(LIGHT_IN+WINDOW_WIDTH)>(TOTAL_HEIGHT+WINDOW_WALL))
+        {
+            G6=0;
+        }
+        else
+        {
+            G6=G5;
+        }
+        /*********无直射修正G7***************************************************************/
+        // if(Ah>AH)
+        // {
+            if((orientation>=-90) && (orientation<0))
+            {
+                if(((As>=orientation+90) && (As<=180)) || ((As>=-180) && (As<=orientation-90)))
                 {
                     G7=0;
                 }
                 else
                 {
                     G7=G6;
-                }			
+                }
             }
             else
             {
-                if((orientation<90) && (orientation>=0))
+                if((orientation>-180) && (orientation<-90))
                 {
-                    if(((As>=-180) && (As<=orientation-90)) || ((As>=90+orientation) && (As<=180)))
+                    if((As>=orientation+90) && (As<=orientation+270))
                     {
                         G7=0;
                     }
                     else
                     {
                         G7=G6;
-                    }				
+                    }			
                 }
                 else
                 {
-                    if((orientation>=90) && (orientation<=180))
+                    if((orientation<90) && (orientation>=0))
                     {
-                        if((As>=orientation-270) && (As<=orientation-90))
+                        if(((As>=-180) && (As<=orientation-90)) || ((As>=90+orientation) && (As<=180)))
                         {
                             G7=0;
                         }
                         else
                         {
-                            G7=G6;					
-                        }
+                            G7=G6;
+                        }				
                     }
                     else
                     {
-                        G7=G6;
+                        if((orientation>=90) && (orientation<=180))
+                        {
+                            if((As>=orientation-270) && (As<=orientation-90))
+                            {
+                                G7=0;
+                            }
+                            else
+                            {
+                                G7=G6;					
+                            }
+                        }
+                        else
+                        {
+                            G7=G6;
+                        }
+                    }
+                }
+            }
+        // }
+        // else
+        // {
+        //     G7=G6;
+        // }
+        //ESP_LOGI(TAG, "G2=%f",G2);
+    /************************圆整G8*********************************/
+    if(G7==0)
+        {
+            G8=0;
+        }
+        else if((G7>0)&&(G7<=(TOTAL_HEIGHT*0.1)))
+        {
+            G8=10;
+        }
+        else if((G7>(TOTAL_HEIGHT*0.1))&&(G7<=(TOTAL_HEIGHT*0.2)))
+        {
+            G8=20;
+        }
+        else if((G7>(TOTAL_HEIGHT*0.2))&&(G7<=(TOTAL_HEIGHT*0.3)))
+        {
+            G8=30;
+        }
+        else if((G7>(TOTAL_HEIGHT*0.3))&&(G7<=(TOTAL_HEIGHT*0.4)))
+        {
+            G8=40;
+        }
+        else if((G7>(TOTAL_HEIGHT*0.4))&&(G7<=(TOTAL_HEIGHT*0.5)))
+        {
+            G8=50;
+        }
+        else if((G7>(TOTAL_HEIGHT*0.5))&&(G7<=(TOTAL_HEIGHT*0.6)))
+        {
+            G8=60;
+        }
+        else if((G7>(TOTAL_HEIGHT*0.6))&&(G7<=(TOTAL_HEIGHT*0.7)))
+        {
+            G8=70;
+        }
+        else if((G7>(TOTAL_HEIGHT*0.7))&&(G7<=(TOTAL_HEIGHT*0.8)))
+        {
+            G8=80;
+        }
+        else if((G7>(TOTAL_HEIGHT*0.8))&&(G7<=(TOTAL_HEIGHT*0.9)))
+        {
+            G8=90;
+        }
+        else if((G7>(TOTAL_HEIGHT*0.9))&&(G7<=TOTAL_HEIGHT))
+        {
+            G8=100;
+        }
+        else if(G7>TOTAL_HEIGHT)    
+        {
+            G8=100;
+        }      
+
+        if((Aa6==1)||(Aa6==2)||(Aa6==3))
+        {
+            Aa=0;
+        }
+        else
+        {
+            Aa=Aa6;
+        }
+        //ESP_LOGI(TAG, "Aa=%f",Aa);
+
+        /************************人员过程**********************************/
+        if(lat>LAT_NORTH)//北方
+        {
+            N1=NORTH_WINTER_START;
+            N2=NORTH_WINTER_END;
+        }
+        else if((lat>=LAT_SOUTH)&&(lat<LAT_NORTH))//中部
+        {
+            N1=CENTRAL_WINTER_START;
+            N2=CENTRAL_WINTER_END;
+        }
+        else if(lat<LAT_SOUTH)//南部
+        {
+            N1=SOUTH_WINTER_START;
+            N2=SOUTH_WINTER_END;
+        }
+
+        if(((hour*60+minute)>=(T2_h*60+T2_m))&&((hour*60+minute)<(T3_h*60+T3_m)))
+        {
+            X=1;
+        }
+        else
+        {
+            if(((hour*60+minute)>=(T1_h*60+T1_m))&&((hour*60+minute)<(T4_h*60+T4_m)))
+            {
+                X=2;
+            }
+            else
+            {
+                if((Ah>=AH)&&((hour*60+minute)<(T2_h*60+T2_m)))
+                {
+                    if(((N>=1)&&(N<=N2))||((N>=N1)&&(N<=366)))
+                    {
+                        X=0;
+                    }
+                    else
+                    {
+                        X=1;
+                    }
+                }
+                else
+                {
+                    if(((N>=1)&&(N<=N2))||((N>=N1)&&(N<=366)))
+                    {
+                        X=1;
+                    }
+                    else
+                    {
+                        X=0;
                     }
                 }
             }
         }
-    // }
-    // else
-    // {
-    //     G7=G6;
-    // }
-    //ESP_LOGI(TAG, "G2=%f",G2);
-   /************************圆整G8*********************************/
-if(G7==0)
-    {
-        G8=0;
-    }
-    else if((G7>0)&&(G7<=(TOTAL_HEIGHT*0.1)))
-    {
-        G8=10;
-    }
-    else if((G7>(TOTAL_HEIGHT*0.1))&&(G7<=(TOTAL_HEIGHT*0.2)))
-    {
-        G8=20;
-    }
-    else if((G7>(TOTAL_HEIGHT*0.2))&&(G7<=(TOTAL_HEIGHT*0.3)))
-    {
-        G8=30;
-    }
-    else if((G7>(TOTAL_HEIGHT*0.3))&&(G7<=(TOTAL_HEIGHT*0.4)))
-    {
-        G8=40;
-    }
-    else if((G7>(TOTAL_HEIGHT*0.4))&&(G7<=(TOTAL_HEIGHT*0.5)))
-    {
-        G8=50;
-    }
-    else if((G7>(TOTAL_HEIGHT*0.5))&&(G7<=(TOTAL_HEIGHT*0.6)))
-    {
-        G8=60;
-    }
-    else if((G7>(TOTAL_HEIGHT*0.6))&&(G7<=(TOTAL_HEIGHT*0.7)))
-    {
-        G8=70;
-    }
-    else if((G7>(TOTAL_HEIGHT*0.7))&&(G7<=(TOTAL_HEIGHT*0.8)))
-    {
-        G8=80;
-    }
-    else if((G7>(TOTAL_HEIGHT*0.8))&&(G7<=(TOTAL_HEIGHT*0.9)))
-    {
-        G8=90;
-    }
-    else if((G7>(TOTAL_HEIGHT*0.9))&&(G7<=TOTAL_HEIGHT))
-    {
-        G8=100;
-    }
-    else if(G7>TOTAL_HEIGHT)    
-    {
-        G8=100;
-    }      
+        //ESP_LOGI(TAG, "X=%d",X);
 
-    if((Aa6==1)||(Aa6==2)||(Aa6==3))
-    {
-        Aa=0;
-    }
-    else
-    {
-        Aa=Aa6;
-    }
-    //ESP_LOGI(TAG, "Aa=%f",Aa);
-
-    /************************人员过程**********************************/
-    if(lat>LAT_NORTH)//北方
-    {
-        N1=NORTH_WINTER_START;
-        N2=NORTH_WINTER_END;
-    }
-    else if((lat>=LAT_SOUTH)&&(lat<LAT_NORTH))//中部
-    {
-        N1=CENTRAL_WINTER_START;
-        N2=CENTRAL_WINTER_END;
-    }
-    else if(lat<LAT_SOUTH)//南部
-    {
-        N1=SOUTH_WINTER_START;
-        N2=SOUTH_WINTER_END;
-    }
-
-    if(((hour*60+minute)>=(T2_h*60+T2_m))&&((hour*60+minute)<(T3_h*60+T3_m)))
-    {
-        X=1;
-    }
-    else
-    {
-        if(((hour*60+minute)>=(T1_h*60+T1_m))&&((hour*60+minute)<(T4_h*60+T4_m)))
+        if(X==2)
         {
-            X=2;
+            G=G8;
         }
         else
         {
-            if((Ah>=AH)&&((hour*60+minute)<(T2_h*60+T2_m)))
+            if(X==1)
             {
-                if(((N>=1)&&(N<=N2))||((N>=N1)&&(N<=366)))
-                {
-                    X=0;
-                }
-                else
-                {
-                    X=1;
-                }
+                G=100;
             }
             else
             {
-                if(((N>=1)&&(N<=N2))||((N>=N1)&&(N<=366)))
-                {
-                    X=1;
-                }
-                else
-                {
-                    X=0;
-                }
+                G=0;
             }
         }
-    }
-    //ESP_LOGI(TAG, "X=%d",X);
+        ESP_LOGI(TAG, "G=%d",G);
 
-    if(X==2)
-    {
-        G=G8;
-    }
-    else
-    {
-        if(X==1)
+        if(X==2)
         {
-            G=100;
+            AA=Aa;
         }
         else
         {
-            G=0;
+            if(X==1)
+            {
+                AA=80;
+            }
+            else
+            {
+                AA=0;
+            }
         }
-    }
-    ESP_LOGI(TAG, "G=%d",G);
+        ESP_LOGI(TAG, "AA=%d",AA);
 
-    if(X==2)
-    {
-        AA=Aa;
-    }
-    else
-    {
-        if(X==1)
-        {
-            AA=80;
-        }
-        else
-        {
-            AA=0;
-        }
-    }
-    ESP_LOGI(TAG, "AA=%d",AA);
+        *Height=G;
+        *Angle=AA;
 
-    *Height=G;
-    *Angle=AA;
-
+    }
 }

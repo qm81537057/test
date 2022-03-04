@@ -17,6 +17,7 @@
 #include "Wind.h"
 #include "Bluetooth.h"
 #include "Led.h"
+#include "Localcalculation.h"
 
 typedef enum
 {
@@ -445,59 +446,96 @@ esp_err_t parse_objects_http_respond(char *http_json_data)
 esp_err_t parse_Uart0(char *json_data)
 {
         cJSON *json_data_parse = NULL;
+        cJSON *json_data_parse_command = NULL;
         cJSON *json_data_parse_ProductID = NULL;
         cJSON *json_data_parse_SeriesNumber = NULL;
+
+        cJSON *json_data_parse_debug_height = NULL;
+        cJSON *json_data_parse_debug_angle = NULL;
+
 
         //if(strstr(json_data,"{")==NULL)
         if (json_data[0] != '{')
         {
-                printf("uart0 Json Formatting error1\n");
+                printf("uart0 Json Formatting error01\n");
                 return 0;
         }
 
         json_data_parse = cJSON_Parse(json_data);
         if (json_data_parse == NULL) //如果数据包不为JSON则退出
         {
-                printf("uart0 Json Formatting error\n"); 
+                printf("uart0 Json Formatting error02\n"); 
                 cJSON_Delete(json_data_parse);
 
                 return 0;
         }
         else
         {
-                json_data_parse_ProductID = cJSON_GetObjectItem(json_data_parse, "ProductID");
-                printf("ProductID= %s\n", json_data_parse_ProductID->valuestring);
-                json_data_parse_SeriesNumber = cJSON_GetObjectItem(json_data_parse, "SeriesNumber");
-                printf("SeriesNumber= %s\n", json_data_parse_SeriesNumber->valuestring);
+                json_data_parse_command = cJSON_GetObjectItem(json_data_parse, "Command");
+                if (!strcmp(json_data_parse_command->valuestring, "SetupProduct"))  //参数设置指令
+                {
 
-                sprintf(ProductId, "%s%c", json_data_parse_ProductID->valuestring, '\0');
-                E2prom_Write(0x40, (uint8_t *)ProductId, strlen(ProductId));
+                        json_data_parse_ProductID = cJSON_GetObjectItem(json_data_parse, "ProductID");
+                        printf("ProductID= %s\n", json_data_parse_ProductID->valuestring);
 
-                sprintf(SerialNum, "%s%c", json_data_parse_SeriesNumber->valuestring, '\0');
-                E2prom_Write(0x30, (uint8_t *)SerialNum, strlen(SerialNum));
+                        json_data_parse_SeriesNumber = cJSON_GetObjectItem(json_data_parse, "SeriesNumber");
+                        printf("SeriesNumber= %s\n", json_data_parse_SeriesNumber->valuestring);
 
-                //清空API-KEY存储，激活后获取
-                uint8_t data_write2[33] = "\0";
-                E2prom_Write(0x00, data_write2, 32);
+                        sprintf(ProductId, "%s%c", json_data_parse_ProductID->valuestring, '\0');
+                        E2prom_Write(0x40, (uint8_t *)ProductId, strlen(ProductId));
 
-                //清空channelid，激活后获取
-                uint8_t data_write3[16] = "\0";
-                E2prom_Write(0x20, data_write3, 16);
+                        sprintf(SerialNum, "%s%c", json_data_parse_SeriesNumber->valuestring, '\0');
+                        E2prom_Write(0x30, (uint8_t *)SerialNum, strlen(SerialNum));
 
-                uint8_t zerobuf[512] = "\0";
-                E2prom_BluWrite(0x00, (uint8_t *)zerobuf, 512); //清空蓝牙
+                        //清空API-KEY存储，激活后获取
+                        uint8_t data_write2[33] = "\0";
+                        E2prom_Write(0x00, data_write2, 32);
 
-                //E2prom_Read(0x30,(uint8_t *)SerialNum,16);
-                //printf("read SerialNum=%s\n", SerialNum);
+                        //清空channelid，激活后获取
+                        uint8_t data_write3[16] = "\0";
+                        E2prom_Write(0x20, data_write3, 16);
 
-                //E2prom_Read(0x40,(uint8_t *)ProductId,32);
-                //printf("read ProductId=%s\n", ProductId);
+                        uint8_t zerobuf[512] = "\0";
+                        E2prom_BluWrite(0x00, (uint8_t *)zerobuf, 512); //清空蓝牙
 
-                printf("{\"status\":0,\"code\": 0}");
-                cJSON_Delete(json_data_parse);
-                fflush(stdout); //使stdout清空，就会立刻输出所有在缓冲区的内容。
-                esp_restart();  //芯片复位 函数位于esp_system.h
-                return 1;
+                        //E2prom_Read(0x30,(uint8_t *)SerialNum,16);
+                        //printf("read SerialNum=%s\n", SerialNum);
+
+                        //E2prom_Read(0x40,(uint8_t *)ProductId,32);
+                        //printf("read ProductId=%s\n", ProductId);
+
+                        printf("{\"status\":0,\"code\": 0}");
+                        cJSON_Delete(json_data_parse);
+                        fflush(stdout); //使stdout清空，就会立刻输出所有在缓冲区的内容。
+                        esp_restart();  //芯片复位 函数位于esp_system.h
+                        return 1;
+                }
+                else if (!strcmp(json_data_parse_command->valuestring, "DebugOn"))  //debug指令
+                {
+                        debug_flag = 1;
+                        json_data_parse_debug_height = cJSON_GetObjectItem(json_data_parse, "height");
+                        debug_heigh = json_data_parse_debug_height->valueint;
+                        printf("debug_heigh= %d\n", debug_heigh);
+
+                        json_data_parse_debug_angle = cJSON_GetObjectItem(json_data_parse, "angle");
+                        debug_angle = json_data_parse_debug_angle->valueint;
+                        printf("debug_angle= %d\n", debug_angle);                        
+
+                        cJSON_Delete(json_data_parse);
+                        return 1;
+                }
+                else if (!strcmp(json_data_parse_command->valuestring, "DebugOff"))  //debug指令
+                {
+                        debug_flag = 0;
+                      
+                        cJSON_Delete(json_data_parse);
+                        return 1;
+                }
+                else
+                {
+                        printf("uart0 Json Formatting error03\n"); 
+                        return 0;
+                }
         }
 }
 
