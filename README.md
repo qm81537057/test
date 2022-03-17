@@ -55,3 +55,6 @@ MAX_AUTO_CTL_TIME 改为了 1 * 60
 {"Command":"DebugOff"}
 
 增加捷昌遥控，兼容易佰龙和捷昌
+
+2022-03-16
+修改了localcalc.c算法
